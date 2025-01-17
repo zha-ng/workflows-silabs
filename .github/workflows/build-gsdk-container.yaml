@@ -29,8 +29,8 @@ jobs:
       packages: write
       contents: write
     outputs:
-      sdk_version: ${{ env.sdk_version }}
-      image_name: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:${{ env.sdk_version }}
+      sdk_version: ${{ inputs.sdk_version }}
+      image_name: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:${{ inputs.sdk_version }}
 
     steps:
       - name: Repository owner lowercase
@@ -53,11 +53,11 @@ jobs:
         with:
           context: .
           file: Dockerfile
-          tags: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:${{ env.sdk_version }}
-          cache-from: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:cache-${{ env.sdk_version }}-${{ env.gcc_version }}-${{ env.zap_version}}
-          cache-to: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:cache-${{ env.sdk_version }}-${{ env.gcc_version }}-${{ env.zap_version}}
+          tags: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:${{ inputs.sdk_version }}
+          cache-from: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:cache-${{ inputs.sdk_version }}-${{ inputs.gcc_version }}-${{ inputs.zap_version}}
+          cache-to: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:cache-${{ inputs.sdk_version }}-${{ inputs.gcc_version }}-${{ inputs.zap_version}}
           push: true
           build-args: |
-            "GECKO_SDK_VERSION=v${{ env.sdk_version }}"
-            "GCC_ARM_VERSION=${{ env.gcc_version }}"
-            "ZAP_TOOL_RELEASE=${{ env.zap_version }}"
+            "GECKO_SDK_VERSION=v${{ inputs.sdk_version }}"
+            "GCC_ARM_VERSION=${{ inputs.gcc_version }}"
+            "ZAP_TOOL_RELEASE=${{ inputs.zap_version }}"
