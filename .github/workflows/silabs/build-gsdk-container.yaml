@@ -1,0 +1,63 @@
+name: Gecko SDK Container Build
+
+on:
+  workflow_call:
+    inputs:
+      gcc_version:
+        description: "GCC Version"
+        required: false
+        default: "12.3.rel1"
+        type: string
+
+      zap_version:
+        description: "ZAP Version"
+        required: false
+        default: "v2024.12.13"
+        type: string
+
+      sdk_version:
+        description: "Gecko SDK Version"
+        required: false
+        default: "4.4.5"
+        type: string
+
+jobs:
+  build-container:
+    name: Create GSDK build container image
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
+    outputs:
+      sdk_version: ${{ env.sdk_version }}
+      image_name: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:${{ env.sdk_version }}
+
+    steps:
+      - name: Repository owner lowercase
+        id: lower
+        run: |
+          echo "repository_owner=$(echo $GITHUB_REPOSITORY_OWNER | tr [:upper:] [:lower:])" >> $GITHUB_OUTPUT
+
+      - name: Log in to the GitHub container registry
+        uses: docker/login-action@v3
+        with:
+            registry: ghcr.io
+            username: ${{ github.repository_owner }}
+            password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:${{ env.sdk_version }}
+          cache-from: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:cache-${{ env.sdk_version }}-${{ env.gcc_version }}-${{ env.zap_version}}
+          cache-to: ghcr.io/${{ steps.lower.outputs.repository_owner }}/silabs-project-builder:cache-${{ env.sdk_version }}-${{ env.gcc_version }}-${{ env.zap_version}}
+          push: true
+          build-args: |
+            "GECKO_SDK_VERSION=v${{ env.sdk_version }}"
+            "GCC_ARM_VERSION=${{ env.gcc_version }}"
+            "ZAP_TOOL_RELEASE=${{ env.zap_version }}"
