@@ -21,6 +21,14 @@ on:
         default: "4.4.5"
         type: string
 
+    outputs:
+      sdk_version:
+        description: "Gecko SDK Version"
+        value: ${{ inputs.sdk_version }}
+      image_name:
+        description: "Container image name"
+        value: ${{ jobs.build-container.outputs.image_name }}
+
 jobs:
   build-container:
     name: Create GSDK build container image
