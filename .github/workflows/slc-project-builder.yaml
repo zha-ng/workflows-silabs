@@ -74,8 +74,14 @@ on:
 
       model:
         required: false
-        description: Model attribute
-        default: 'Just a light'
+        description: Model attribute value
+        default: ''
+        type: string
+
+      manufacturer:
+        required: false
+        description: Manufacturer attribute value
+        default: ''
         type: string
 
       with_bootloader:
@@ -209,9 +215,20 @@ jobs:
           echo "Date Code = '${SW_BUILD_ID}'"
           jq "${FILTER} |= \"${SW_BUILD_ID}\"" "zcl_config.zap~" > "zcl_config.zap"
 
+      - name: Update Manufacturer in ZAP config
+        id: zcl_manufacturer
+        if: ${{ env.IS_BTL != 'yes' && inputs.manufacturer != '' }}
+        run: |
+          cd "${{ env.CONFIG_PATH }}/zcl"
+          cp "zcl_config.zap" "zcl_config.zap~"
+          MANUFACTURER=$(echo ${{ inputs.model }} | cut -c1-32)
+          echo "Using '${MANUFACTURER}' for model attribute value"
+          FILTER='(. | .endpointTypes[].clusters[] | select(.name == "Basic") | .attributes[] | select(.code == 4)).defaultValue'
+          jq "${FILTER} |= \"${MANUFACTURER}\"" "zcl_config.zap~" > "zcl_config.zap"
+
       - name: Update Model in ZAP config
         id: zcl_model
-        if: ${{ env.IS_BTL != 'yes' }}
+        if: ${{ env.IS_BTL != 'yes' && inputs.model != '' }}
         run: |
           cd "${{ env.CONFIG_PATH }}/zcl"
           cp "zcl_config.zap" "zcl_config.zap~"
