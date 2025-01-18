@@ -189,10 +189,6 @@ jobs:
           echo "BUILD_DATE=${META_DATE}" >> "$GITHUB_OUTPUT"
           echo "BUILD_ID_MOD100=${BUILD_ID_MOD100}" >> "$GITHUB_OUTPUT"
 
-          MODEL_NAME="${{ inputs.model }} (${{ inputs.flavor }})"
-          echo "MODEL Name = '${MODEL_NAME}'"
-          echo "MODEL_NAME=${MODEL_NAME}" >> "$GITHUB_OUTPUT"
-
       - name: Update dateCode in ZAP config
         if: ${{ env.IS_BTL != 'yes' }}
         run: |
@@ -219,8 +215,10 @@ jobs:
         run: |
           cd "${{ env.CONFIG_PATH }}/zcl"
           cp "zcl_config.zap" "zcl_config.zap~"
+          MODEL=$(echo ${{ inputs.model }} | cut -c1-32)
+          echo "Using '${MODEL}' for model attribute value"
           FILTER='(. | .endpointTypes[].clusters[] | select(.name == "Basic") | .attributes[] | select(.code == 5)).defaultValue'
-          jq "${FILTER} |= \"${MODEL_ID}\"" "zcl_config.zap~" > "zcl_config.zap"
+          jq "${FILTER} |= \"${MODEL}\"" "zcl_config.zap~" > "zcl_config.zap"
 
       - name: Generate New Project
         run: |
